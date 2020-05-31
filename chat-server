@@ -66,10 +66,13 @@ def main():
                     msg=sock.recv(1024).decode('utf_8')
                     if msg:
                         found=re.search(r'MSG\s',msg)
-                        if len(msg)>256:
-                        else:
+                        if len(msg)>256:   #length of the charatcters should not exceed 256 characters
+                            sock.sendall('Error message length should not exceed 256 characters'.encode('utf_8'))
+                        elif found:
                             msg_to_send='MSG '+str(perm_C_list_dictionary[sock])+': '+msg[4:]
                             broadcast(msg_to_send,sock)
+                        else:
+                            sock.sendall('Error BAD COMMAND ACTUAL COMMAND MSG <msg>'.encode('utf_8'))
                     else:
                         sock.close()
                         C_list.remove(sock)
