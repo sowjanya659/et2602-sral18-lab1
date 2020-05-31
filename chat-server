@@ -6,6 +6,7 @@ import select
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 if len(sys.argv) != 2:
+      print("please use this format: python3 chatserver server_addr:port number")
     sys.exit(1)
 args = str(sys.argv[1]).split(':')
 host = str(args[0])
@@ -13,7 +14,7 @@ port = int(args[1])
 s.bind((host, port))
 s.listen(100)
 C_list=[]  #  list of clients 
-C_list.append(s)#clients will appearone next to another
+C_list.append(s)#clients will appear one next to another
 temp_C_list=[]  # creates a temporary list and if there are no errors then it will add to the permanent list.
 perm_C_list=[]  # creates a array of permanent list from the error free temporary list
 perm_C_list_dictionary={}  # creates an array of dictionary of permanent list which will assign the nickname  to the address for easy identification
@@ -47,6 +48,8 @@ def main():
                         name=str(found.group(1))
                         if len(name)>12:
                             sock.sendall('Error : nicknames are only of 12 characters '.encode('utf_8'))
+                          elif re.search(r'@',name) or re.search(r'\$',name) or re.search(r'#',name) or re.search(r'!',name) or re.search(r'\*',name) or re.search(r'%',name) or re.search(r'\^',name):
+                            sock.sendall('Error don\'t use special characters in your nick names'.encode('utf_8'))
                         elif found:
                             sock.sendall(('Welcome to chat window'+str(name)).encode('utf_8'))
                             perm_C_list.append(sock)
