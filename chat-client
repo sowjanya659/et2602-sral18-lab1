@@ -7,6 +7,7 @@ import re
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 if len(sys.argv) != 3:
+     print("please follow this Format: chat_client,HOST_IP_address:port_Number, Nickname")
    sys.exit(1)
 args = str(sys.argv[1]).split(':')
 host = str(args[0])
@@ -17,7 +18,7 @@ MESSAGE= s.recv(1024).decode('utf-8')
 print(MESSAGE)
 s.sendall(('NICK '+nick).encode('utf-8'))
 ok = s.recv(1024).decode('utf-8')
-if re.search('Error',ok) 
+if re.search('Error',ok) or re.search('ERROR',ok): #how ever it is in capitals or small letter the system should take and generate ok msg 
     print(ok)
     sys.exit()
 print(ok)
@@ -27,7 +28,11 @@ while True:
     for sock in read_sockets:
         if sock == s:
             message = sock.recv(2048).decode('utf-8')
-            print (message)
+            if re.search(r'Error',message) or re.search(r'ERROR',message): #how ever it is in capitals or small letter the system should take and generate ok msg 
+                print (message)
+            else:
+                message = message[4:]# removing MSG and giving it to print out 
+                print (message)
         else:
             message = sys.stdin.readline()
             if message == '\n':
