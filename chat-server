@@ -1,1 +1,81 @@
+import socket
+import sys
+import re
+import select
 
+s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+if len(sys.argv) != 2:
+    print("please use this format: python3 chatserver server_addr:port number")
+    sys.exit(1)
+args = str(sys.argv[1])
+host = str(args[0])
+port = int(args[1])
+s.bind((host, port))
+s.listen(100)
+C_list=[]  #  list of clients to save them
+C_list.append(s)
+temp_C_list=[]  # creates a temporary list and if there are no errors then it will add to the permanent list.
+perm_C_list=[]  # creates a array of permanent list from the error free temporary list
+perm_C_list_dictionary={}  # creates an array of dictionary of permanent list which will assign the nickname  to the address for easy identification
+
+def broadcast(msg,conn):
+    for sock in perm_C_list:
+        if sock!= conn:
+            print('broadcasting')
+            try:
+                sock.sendall(msg.encode('utf_8'))
+            except:
+                sock.close()
+                perm_C_list.remove(sock)
+                del perm_C_list_dictionary[sock]
+                C_list.remove(sock)
+def main():
+    print("HI, server started running on " ,host, port )
+    while True:
+        readsock,writesock,errorsock=select.select(C_list,[],[])
+        for sock in readsock:
+            if sock==s:
+                newsock,addr=s.accept()
+                newsock.sendall('Hello 1'.encode('utf_8'))
+                C_list.append(newsock)
+                temp_C_list.append(newsock)
+            elif sock in temp_C_list:
+                try:
+                    nick=sock.recv(1024).decode('utf_8')
+                    if nick:
+                        found=re.search(r'NICK\s(\S*)',nick)
+                        name=str(found.group(1))
+                        if len(name)>15:
+                            sock.sendall('Error : nicknames are only of 15 characters '.encode('utf_8'))
+                        elif found:
+                            sock.sendall(('Welcome to chat window'+str(name)).encode('utf_8'))
+                            perm_C_list.append(sock)
+                            perm_C_list_dictionary[sock]=name
+                            temp_C_list.remove(sock)
+                    else:
+                        sock.close()
+                        C_list.remove(sock)
+                        temp_C_list.remove(sock)
+                except:
+                    continue
+            elif sock in perm_C_list:
+                try:
+                    msg=sock.recv(1024).decode('utf_8')
+                    if msg:
+                        found=re.search(r'MSG\s',msg)
+                        if len(msg)>259:
+                        else:
+                            msg_to_send='MSG '+str(perm_C_list_dictionary[sock])+': '+msg[4:]
+                            broadcast(msg_to_send,sock)
+                    else:
+                        sock.close()
+                        C_list.remove(sock)
+                        perm_C_list.remove(sock)
+                        del perm_C_list_dictionary[sock]
+                except:
+                    continue
+
+    s.close()
+if __name__ == "__main__":
+    main()
