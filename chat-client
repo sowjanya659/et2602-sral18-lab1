@@ -8,7 +8,7 @@ import re
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 if len(sys.argv) != 3:
      print("please follow this Format: chat_client,HOST_IP_address:port_Number, Nickname")
-   sys.exit(1)
+     sys.exit(1)
 args = str(sys.argv[1]).split(':')
 host = str(args[0])
 port = int(args[1])
